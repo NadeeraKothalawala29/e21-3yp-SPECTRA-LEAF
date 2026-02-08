@@ -11,6 +11,8 @@ title: Project Template
 
 # Project Title
 
+SPECTRA LEAF
+
 ---
 
 ## Team
