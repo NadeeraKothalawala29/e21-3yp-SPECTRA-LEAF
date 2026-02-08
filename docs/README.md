@@ -14,9 +14,10 @@ title: Project Template
 ---
 
 ## Team
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
+- E/21/226, Nadeera Kothalawala, [email](e21226@eng.pdn.ac.lk)
+- E/21/049, Lahiru Dinushan, [email](e21049@eng.pdn.ac.lk)
+- E/21/200, Rangana Madhushanka, [email](e21200@eng.pdn.ac.lk)
+- E/21/054, Deshan Dinidu, [email](e21054@eng.pdn.ac.lk)
 
 <!-- Image (photo/drawing of the final hardware) should be here -->
 
@@ -35,7 +36,9 @@ title: Project Template
 
 ## Introduction
 
-Description of the real world problem and solution, impact
+The Sri Lankan tea industry currently relies on the subjective olfactory expertise of "Tea Makers" to determine the optimal fermentation (enzymatic oxidation) point. This manual approach is vulnerable to human error, sensory fatigue, and environmental variability, often resulting in inconsistent batch quality and financial loss. 
+
+**SPECTRA LEAF** is an IoT-based olfactory profiling system designed to digitize this process. By utilizing a multi-channel gas sensor array and color sensing, the system tracks the chemical transition from "grassy" aldehydes to "floral" terpene alcohols in real-time. This allows for the scientific identification of the "Sweet Spot"—the exact moment when flavor and color are maximized. The system records digital fingerprints of successful batches, enabling factories to replicate high-quality profiles consistently regardless of daily fluctuations in leaf quality.
 
 
 ## Solution Architecture
