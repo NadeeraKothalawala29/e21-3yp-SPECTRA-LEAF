@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Surfaces */
+  --bg-base: #F8FAF9;       /* page */
+  --bg-surface: #FFFFFF;    /* sidebar, header, cards-on-page */
+  --bg-elevated: #FFFFFF;   /* cards, modals */
+  --bg-subtle: #F1F5F4;     /* hover, secondary chips */
+
+  /* Borders */
+  --border: #E2E8F0;
+  --border-active: #CBD5E1;
+
+  /* Accents */
+  --accent-primary: #15803D;       /* green-600 */
+  --accent-primary-hover: #166534; /* green-700 */
+  --accent-primary-soft: #F0FDF4;  /* green-50 */
+  --accent-primary-soft-bd: #86EFAC;
+
+  --accent-secondary: #3B82F6;     /* blue-500 */
+  --accent-secondary-soft: #EFF6FF;
+  --accent-warn: #F59E0B;
+  --accent-warn-soft: #FFFBEB;
+  --accent-danger: #EF4444;
+  --accent-danger-soft: #FEF2F2;
+
+  /* Text */
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Dark sidebar palette (icon rail + expanded panel) */
+  --side-rail: #0B0D11;
+  --side-panel: #15181E;
+  --side-border: #23262D;
+  --side-text: #E5E7EB;
+  --side-text-muted: #8B92A0;
+  --side-hover: #1F232B;
+  --side-active-bg: #23262D;
+  --side-active-text: #FFFFFF;
+}
+
+html, body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+
+.font-display {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Scrollbar — light, subtle */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; border: 2px solid var(--bg-base); }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* Status indicators — left bar accents */
+.status-ongoing       { border-left: 3px solid var(--accent-primary); }
+.status-completed     { border-left: 3px solid var(--accent-secondary); }
+.status-draft         { border-left: 3px solid var(--text-muted); }
+.status-ready-phase   { border-left: 3px solid var(--accent-warn); }
+.status-ready-to-start{ border-left: 3px solid var(--accent-primary); }
+
+/* Table rows */
+.row-alt:hover {
+  background-color: #F8FAF9;
+}
+
+/* Selection */
+::selection {
+  background: #DCFCE7;
+  color: #14532D;
+}
+
+/* Recharts */
+.recharts-wrapper:focus { outline: none; }
+
+/* Pulse ring — subtle live indicator */
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1px solid var(--accent-primary);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Soft dotted background for marketing surfaces */
+.grid-bg {
+  background-image: radial-gradient(circle at 1px 1px, #DCFCE7 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Live dot pulse */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #16A34A;
+  animation: live-pulse 1.8s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* Eyebrow utility */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
