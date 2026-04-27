@@ -1,0 +1,157 @@
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import Card from '../components/Card';
+import MetricCard from '../components/MetricCard';
+import Loading from '../components/Loading';
+import EmptyState from '../components/EmptyState';
+import { useBatchGraphs, useBatchSummary } from '../hooks/useBatch';
+import { fmtCurrency, fmtDate, fmtNumber } from '../lib/format';
+import { theme } from '../theme';
+import { GraphPoint } from '../types';
+import { AppStackParamList } from '../navigation/AppNavigator';
+
+function fmt(n: number | null | undefined, d = 1) {
+  return fmtNumber(n, d);
+}
+
+function MiniChart({ points, color }: { points: GraphPoint[]; color: string }) {
+  if (!points || points.length === 0) {
+    return <Text style={styles.muted}>No data</Text>;
+  }
+  const values = points.map(p => Number(p.value)).filter(v => !Number.isNaN(v));
+  if (values.length === 0) return <Text style={styles.muted}>No data</Text>;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  return (
+    <View>
+      <View style={styles.bars}>
+        {values.slice(-30).map((v, i) => {
+          const h = 6 + ((v - min) / range) * 50;
+          return <View key={i} style={[styles.bar, { height: h, backgroundColor: color }]} />;
+        })}
+      </View>
+      <View style={styles.rowBetween}>
+        <Text style={styles.muted}>min {fmt(min)}</Text>
+        <Text style={styles.muted}>max {fmt(max)}</Text>
+        <Text style={styles.muted}>n={values.length}</Text>
+      </View>
+    </View>
+  );
+}
+
+export default function BatchDetailScreen() {
+  const route = useRoute<RouteProp<AppStackParamList, 'BatchDetail'>>();
+  const navigation = useNavigation();
+  const { batchId } = route.params;
+  const { summary, loading: sLoading, error: sError } = useBatchSummary(batchId);
+  const { graphs, loading: gLoading, error: gError } = useBatchGraphs(batchId);
+
+  return (
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backText}>← Back</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>{batchId}</Text>
+      {sLoading ? <Loading /> : null}
+      {sError ? (
+        <Card style={{ borderColor: theme.colors.danger }}>
+          <Text style={{ color: theme.colors.danger }}>{sError}</Text>
+        </Card>
+      ) : null}
+
+      <View style={[styles.row, { marginTop: theme.spacing.md }]}>
+        <MetricCard label="Factory" value={summary?.factoryId || '—'} />
+        <View style={{ width: theme.spacing.md }} />
+        <MetricCard label="GLP" value={summary?.glp ?? '—'} unit="%" accent={theme.colors.primary} />
+      </View>
+      <View style={[styles.row, { marginTop: theme.spacing.md }]}>
+        <MetricCard label="Price" value={fmtCurrency(summary?.price)} />
+        <View style={{ width: theme.spacing.md }} />
+        <MetricCard
+          label="Status"
+          value={summary?.glp != null ? 'Completed' : 'Ongoing'}
+          accent={summary?.glp != null ? theme.colors.success : theme.colors.warning}
+        />
+      </View>
+
+      <Text style={styles.section}>Temperature</Text>
+      <Card>
+        {gLoading ? <Loading /> : <MiniChart points={graphs?.temperature || []} color={theme.colors.danger} />}
+      </Card>
+
+      <Text style={styles.section}>MQ135</Text>
+      <Card>
+        {gLoading ? <Loading /> : <MiniChart points={graphs?.mq135 || []} color={theme.colors.info} />}
+      </Card>
+
+      <Text style={styles.section}>Color</Text>
+      <Card>
+        {gLoading ? <Loading /> : <MiniChart points={graphs?.color || []} color={theme.colors.primary} />}
+      </Card>
+
+      <Text style={styles.section}>Recent Temperature Points</Text>
+      {graphs?.temperature && graphs.temperature.length > 0 ? (
+        graphs.temperature.slice(-10).reverse().map((p, i) => (
+          <Card key={i} style={{ marginBottom: 6 }}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.muted}>{fmtDate(p.timestamp)}</Text>
+              <Text style={styles.value}>{fmt(p.value)}°C</Text>
+            </View>
+          </Card>
+        ))
+      ) : (
+        <Card>
+          <EmptyState title="No temperature points" />
+        </Card>
+      )}
+
+      {gError ? (
+        <Card style={{ borderColor: theme.colors.danger, marginTop: theme.spacing.md }}>
+          <Text style={{ color: theme.colors.danger }}>{gError}</Text>
+        </Card>
+      ) : null}
+
+      <View style={{ height: theme.spacing.xxl }} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  scroll: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: theme.spacing.lg, paddingBottom: theme.spacing.xxl * 2 },
+  title: { fontSize: theme.font.h1, fontWeight: '800', color: theme.colors.text },
+  muted: { color: theme.colors.textMuted, fontSize: theme.font.small },
+  section: {
+    fontSize: theme.font.h3,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
+  },
+  row: { flexDirection: 'row' },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  value: { fontWeight: '700', color: theme.colors.text },
+  bars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    height: 60,
+    gap: 3,
+    marginBottom: 8,
+  },
+  bar: {
+    flex: 1,
+    minWidth: 4,
+    borderRadius: 2,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: theme.spacing.md,
+  },
+  backText: {
+    fontSize: theme.font.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+});

@@ -1,0 +1,123 @@
+import React, { useMemo, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Card from '../components/Card';
+import MetricCard from '../components/MetricCard';
+import Badge from '../components/Badge';
+import Loading from '../components/Loading';
+import EmptyState from '../components/EmptyState';
+import { useAuthStore } from '../store/authStore';
+import { useFactoryBatches, useFactoryReadings } from '../hooks/useReadings';
+import { fmtDate } from '../lib/format';
+import { theme } from '../theme';
+import { BatchListItem } from '../types';
+
+const isActive = (b: BatchListItem) => b.glp === null || b.glp === undefined;
+
+export default function FactoryScreen() {
+  const factoryId = useAuthStore(s => s.factoryId);
+  const { readings, loading: rLoading, refresh: rRefresh } = useFactoryReadings(factoryId, 30000, 50);
+  const { batches, loading: bLoading, refresh: bRefresh } = useFactoryBatches(factoryId, 30000);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const devices = useMemo(() => {
+    const map = new Map<string, string>();
+    readings.forEach(r => {
+      if (r.deviceId && (!map.has(r.deviceId) || r.timestamp > (map.get(r.deviceId) || ''))) {
+        map.set(r.deviceId, r.timestamp);
+      }
+    });
+    return Array.from(map.entries()).map(([deviceId, lastSeen]) => ({ deviceId, lastSeen }));
+  }, [readings]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([rRefresh(), bRefresh()]);
+    setRefreshing(false);
+  };
+
+  const ongoing = batches.filter(isActive).length;
+  const completed = batches.length - ongoing;
+
+  return (
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      <Text style={styles.title}>Factory {factoryId}</Text>
+      <Text style={styles.muted}>Operational overview</Text>
+
+      <View style={[styles.row, { marginTop: theme.spacing.lg }]}>
+        <MetricCard label="Total Batches" value={batches.length} />
+        <View style={{ width: theme.spacing.md }} />
+        <MetricCard label="Devices" value={devices.length} />
+      </View>
+      <View style={[styles.row, { marginTop: theme.spacing.md }]}>
+        <MetricCard label="Ongoing" value={ongoing} accent={theme.colors.warning} />
+        <View style={{ width: theme.spacing.md }} />
+        <MetricCard label="Completed" value={completed} accent={theme.colors.success} />
+      </View>
+
+      <Text style={styles.section}>Connected Devices</Text>
+      {rLoading && devices.length === 0 ? <Loading /> : null}
+      {!rLoading && devices.length === 0 ? (
+        <Card>
+          <EmptyState title="No devices" message="No recent device activity." />
+        </Card>
+      ) : null}
+      {devices.map(d => (
+        <Card key={d.deviceId} style={{ marginBottom: theme.spacing.sm }}>
+          <View style={styles.rowBetween}>
+            <View>
+              <Text style={styles.itemTitle}>{d.deviceId}</Text>
+              <Text style={styles.muted}>Last seen: {fmtDate(d.lastSeen)}</Text>
+            </View>
+            <Badge label="Live" variant="live" />
+          </View>
+        </Card>
+      ))}
+
+      <Text style={styles.section}>Recent Batch Activity</Text>
+      {bLoading && batches.length === 0 ? <Loading /> : null}
+      {!bLoading && batches.length === 0 ? (
+        <Card>
+          <EmptyState title="No activity" />
+        </Card>
+      ) : null}
+      {batches.slice(0, 6).map(b => (
+        <Card key={b.batchId} style={{ marginBottom: theme.spacing.sm }}>
+          <View style={styles.rowBetween}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemTitle}>{b.batchId}</Text>
+              <Text style={styles.muted}>{fmtDate(b.lastTimestamp)}</Text>
+            </View>
+            {isActive(b) ? (
+              <Badge label="Ongoing" variant="ongoing" />
+            ) : (
+              <Badge label="Completed" variant="completed" />
+            )}
+          </View>
+        </Card>
+      ))}
+
+      <View style={{ height: theme.spacing.xxl }} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  scroll: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: theme.spacing.lg, paddingBottom: theme.spacing.xxl * 2 },
+  title: { fontSize: theme.font.h1, fontWeight: '800', color: theme.colors.text },
+  muted: { color: theme.colors.textMuted, fontSize: theme.font.small },
+  row: { flexDirection: 'row' },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  section: {
+    fontSize: theme.font.h3,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
+  },
+  itemTitle: { fontSize: theme.font.body, fontWeight: '700', color: theme.colors.text },
+});
