@@ -1,0 +1,20 @@
+{
+  "name": "spectraleaf-backend",
+  "version": "2.0.0",
+  "description": "SpectraLeaf IoT Tea Fermentation backend — AWS DynamoDB + Express",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.565.0",
+    "@aws-sdk/lib-dynamodb": "^3.565.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
