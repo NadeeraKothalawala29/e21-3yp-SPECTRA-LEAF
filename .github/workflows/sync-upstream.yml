@@ -1,0 +1,32 @@
+name: Sync Fork with Department Upstream
+
+on:
+  schedule:
+    # Runs automatically every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allows you to trigger it manually via a button click
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Fork
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync Upstream
+        run: |
+          git config --global user.name "Spectra Leaf Sync Bot"
+          git config --global user.email "sync-bot@spectraleaf.local"
+          
+          # GitHub Actions automatically configures an 'upstream' tracking branch for forks
+          # We fetch the latest changes from the original department repository
+          git fetch upstream
+          
+          # Checkout your local main branch and merge upstream/main
+          git checkout main
+          git merge upstream/main --allow-unrelated-histories -X theirs
+          
+          # Push the updated code to your fork
+          git push origin main
