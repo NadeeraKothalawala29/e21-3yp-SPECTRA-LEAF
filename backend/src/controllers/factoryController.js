@@ -8,7 +8,7 @@ const { ok, serverError } = require('../utils/response');
 
 // GET /api/factories/:factoryId/readings?limit=100&startTime=&endTime=
 async function getReadings(req, res) {
-  const { factoryId } = req.params;
+  const factoryId = req.params.factoryId.replace(/-/g, '');
   const { limit, startTime, endTime } = req.query;
   try {
     const items = await getFactoryReadings(factoryId, { limit, startTime, endTime });
@@ -29,7 +29,7 @@ async function getReadings(req, res) {
 
 // GET /api/factories/:factoryId/batches
 async function getBatches(req, res) {
-  const { factoryId } = req.params;
+  const factoryId = req.params.factoryId.replace(/-/g, '');
   try {
     const batches = await getFactoryBatches(factoryId);
     return res.json({ success: true, factoryId, batches });
@@ -40,7 +40,7 @@ async function getBatches(req, res) {
 
 // GET /api/factories/:factoryId/highest-price
 async function getHighestPrice(req, res) {
-  const { factoryId } = req.params;
+  const factoryId = req.params.factoryId.replace(/-/g, '');
   try {
     const item = await getHighestPriceBatch(factoryId);
     return ok(res, item ? {
@@ -56,7 +56,7 @@ async function getHighestPrice(req, res) {
 
 // GET /api/factories/:factoryId/lowest-price
 async function getLowestPrice(req, res) {
-  const { factoryId } = req.params;
+  const factoryId = req.params.factoryId.replace(/-/g, '');
   try {
     const item = await getLowestPriceBatch(factoryId);
     return ok(res, item ? {
@@ -72,7 +72,7 @@ async function getLowestPrice(req, res) {
 
 // GET /api/factories/:factoryId/dashboard
 async function getDashboard(req, res) {
-  const { factoryId } = req.params;
+  const factoryId = req.params.factoryId.replace(/-/g, '');
   try {
     const [latestReadings, batches, highestBatch, lowestBatch] = await Promise.all([
       getFactoryReadings(factoryId, { limit: 10 }),
