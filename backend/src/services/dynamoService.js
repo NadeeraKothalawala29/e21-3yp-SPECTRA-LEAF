@@ -105,15 +105,12 @@ async function getBatchReadings(batchId) {
 async function getBatchSummary(batchId) {
   try {
     const result = await ddb.send(
-      new QueryCommand({
+      new GetCommand({
         TableName: TABLE_NAME,
-        IndexName: 'GSI_BATCH_SUMMARY',
-        KeyConditionExpression: 'BATCH_ID = :bid AND SUMMARY_KEY = :sk',
-        ExpressionAttributeValues: { ':bid': batchId, ':sk': 'SUMMARY' },
-        Limit: 1,
+        Key: summaryKey(batchId),
       })
     );
-    return result.Items?.[0] ?? null;
+    return result.Item ?? null;
   } catch (err) {
     if (!canFallbackToScan(err)) throw err;
     const items = await scanAll({ TableName: TABLE_NAME });
