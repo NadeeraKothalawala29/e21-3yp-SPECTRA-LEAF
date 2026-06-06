@@ -33,7 +33,20 @@ export function useFactoryBatches(factoryId: string | null, pollMs = 3_000) {
     }
     try {
       const res = await api.get(`/factories/${factoryId}/batches`);
-      setBatches(getArrayPayload<BatchListItem>(res.data, 'batches'));
+      
+      // Ensure the payload is parsed as an object, in case AWS Lambda returns it as a string
+      const payload = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+      
+      // Explicitly extract the batches array from the payload
+      const extractedBatches = Array.isArray(payload?.batches) 
+        ? payload.batches 
+        : Array.isArray(payload?.data) 
+          ? payload.data 
+          : Array.isArray(payload) 
+            ? payload 
+            : [];
+            
+      setBatches(extractedBatches);
       setError(null);
     } catch (e: any) {
       setBatches([]);
