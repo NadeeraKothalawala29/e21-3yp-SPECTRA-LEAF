@@ -152,7 +152,7 @@ export default function ManagerAnalyticsPage() {
                   yKey="price"
                   color="var(--accent-primary)"
                   height={260}
-                  yTickFormatter={(v) => `$${v}`}
+                  yTickFormatter={(v) => fmtCurrency(v as number)}
                 />
               ) : (
                 <Empty />

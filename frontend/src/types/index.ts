@@ -1,7 +1,5 @@
 export type Role = 'OFFICER' | 'MANAGER' | 'GENERAL_MANAGER';
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
-
 export interface AuthState {
   role: Role;
   factoryId: string;
@@ -9,16 +7,16 @@ export interface AuthState {
   displayName: string;
 }
 
-// ─── Sensor / Batch data from new backend ────────────────────────────────────
-
 export interface SensorReading {
   timestamp: string;
-  deviceId: string;
-  factoryId: string;
-  batchId: string;
-  color: number | null;
+  deviceId: string | null;
+  factoryId: string | null;
+  batchId: string | null;
   temperature: number | null;
-  mq135: number | null;
+  rgRatio: number | null;
+  mq137: number | null;
+  tgs2620: number | null;
+  tgs822: number | null;
 }
 
 export interface GraphPoint {
@@ -27,10 +25,11 @@ export interface GraphPoint {
 }
 
 export interface BatchGraphs {
-  batchId: string;
   temperature: GraphPoint[];
-  color: GraphPoint[];
-  mq135: GraphPoint[];
+  rgRatio: GraphPoint[];
+  mq137: GraphPoint[];
+  tgs2620: GraphPoint[];
+  tgs822: GraphPoint[];
 }
 
 export interface BatchSummary {
@@ -38,31 +37,35 @@ export interface BatchSummary {
   factoryId: string;
   glp: number | null;
   price: number | null;
+  summaryKey?: string;
+  type?: string;
 }
 
 export interface BatchListItem {
   batchId: string;
-  lastTimestamp: string;
+  lastTimestamp: string | null;
   latestTemperature: number | null;
-  latestColor: number | null;
-  latestMq135: number | null;
+  latestRgRatio: number | null;
+  latestMq137: number | null;
+  latestTgs2620: number | null;
+  latestTgs822: number | null;
   glp: number | null;
   price: number | null;
 }
 
-export interface PricedBatch {
+export interface PricedBatchSummary {
   batchId: string;
-  factoryId: string;
+  factoryId?: string;
   price: number;
   glp: number | null;
 }
 
 export interface FactoryDashboard {
-  factoryId: string;
-  totalBatches: number;
-  latestReadings: SensorReading[];
-  highestPriceBatch: { batchId: string; price: number; glp: number | null } | null;
-  lowestPriceBatch: { batchId: string; price: number; glp: number | null } | null;
+  factoryId?: string;
+  totalBatches?: number;
+  latestReadings?: SensorReading[];
+  highestPriceBatch: PricedBatchSummary | null;
+  lowestPriceBatch: PricedBatchSummary | null;
 }
 
 export interface FactorySummary {
@@ -70,14 +73,14 @@ export interface FactorySummary {
   totalBatches: number;
   pricedBatches: number;
   totalRevenue: number;
-  topBatch: { batchId: string; price: number } | null;
+  topBatch: PricedBatchSummary | null;
 }
 
 export interface GeneralSummary {
   totalFactories: number;
   totalRevenue: number;
   topFactory: string | null;
-  topBatch: { batchId: string; factoryId: string; price: number } | null;
+  topBatch: PricedBatchSummary | null;
   factoryContributionPercentages: Record<string, number>;
 }
 

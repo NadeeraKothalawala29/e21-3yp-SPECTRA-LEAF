@@ -6,6 +6,10 @@ const {
 } = require('../services/dynamoService');
 const { ok, serverError } = require('../utils/response');
 
+function readingValue(item, key, fallbackKey) {
+  return item[key] ?? (fallbackKey ? item[fallbackKey] : undefined) ?? null;
+}
+
 // GET /api/factories/:factoryId/readings?limit=100&startTime=&endTime=
 async function getReadings(req, res) {
   const factoryId = req.params.factoryId.replace(/-/g, '');
@@ -17,9 +21,11 @@ async function getReadings(req, res) {
       deviceId: i.DEVICE_ID,
       factoryId: i.FACTORY_ID,
       batchId: i.BATCH_ID,
-      color: i.COLOR ?? null,
+      rgRatio: readingValue(i, 'RG_RATIO', 'COLOR'),
       temperature: i.TEMPERATURE ?? null,
-      mq135: i.MQ135 ?? null,
+      mq137: readingValue(i, 'MQ137', 'MQ135'),
+      tgs2620: readingValue(i, 'TGS2620'),
+      tgs822: readingValue(i, 'TGS822'),
     }));
     return ok(res, data);
   } catch (err) {
@@ -89,9 +95,11 @@ async function getDashboard(req, res) {
         timestamp: i.TIMESTAMP,
         deviceId: i.DEVICE_ID,
         batchId: i.BATCH_ID,
-        color: i.COLOR ?? null,
+        rgRatio: readingValue(i, 'RG_RATIO', 'COLOR'),
         temperature: i.TEMPERATURE ?? null,
-        mq135: i.MQ135 ?? null,
+        mq137: readingValue(i, 'MQ137', 'MQ135'),
+        tgs2620: readingValue(i, 'TGS2620'),
+        tgs822: readingValue(i, 'TGS822'),
       })),
       highestPriceBatch: highestBatch ? {
         batchId: highestBatch.BATCH_ID,

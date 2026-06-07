@@ -19,6 +19,21 @@ function priceValue(value) {
   return Number.isFinite(num) ? num : null;
 }
 
+function readingValue(item, key, fallbackKey) {
+  return item[key] ?? (fallbackKey ? item[fallbackKey] : undefined) ?? null;
+}
+
+function hasSensorValues(item) {
+  return [
+    'RG_RATIO',
+    'COLOR',
+    'MQ137',
+    'MQ135',
+    'TGS2620',
+    'TGS822',
+  ].some((key) => item[key] !== undefined && item[key] !== null);
+}
+
 // Paginate through all pages of a QueryCommand params object.
 async function queryAll(params) {
   const items = [];
@@ -67,9 +82,11 @@ async function createSensorReading(item) {
     TYPE: 'SENSOR',
     FACTORY_ID: item.FACTORY_ID,
     BATCH_ID: item.BATCH_ID,
-    COLOR: Number(item.COLOR),
+    RG_RATIO: Number(item.RG_RATIO ?? item.COLOR),
     TEMPERATURE: Number(item.TEMPERATURE),
-    MQ135: Number(item.MQ135),
+    MQ137: Number(item.MQ137 ?? item.MQ135),
+    TGS2620: Number(item.TGS2620),
+    TGS822: Number(item.TGS822),
   };
   await ddb.send(new PutCommand({ TableName: TABLE_NAME, Item: record }));
   return record;
@@ -77,9 +94,8 @@ async function createSensorReading(item) {
 
 // ─── Batch Reading APIs (GSI_BATCH_TIME) ─────────────────────────────────────
 
-// NOTE: GSI_BATCH_TIME must project COLOR for the color graph to work.
-// If COLOR is missing from projection, update the GSI in the AWS console
-// to use "Include attributes" and add COLOR.
+// NOTE: GSI_BATCH_TIME must project RG_RATIO, MQ137, TGS2620, and TGS822
+// for the sensor graphs to work.
 async function getBatchReadings(batchId) {
   const params = {
     TableName: TABLE_NAME,
@@ -90,7 +106,14 @@ async function getBatchReadings(batchId) {
   };
   try {
     const items = await queryAll(params);
-    return items.filter((i) => i.TYPE === 'SENSOR');
+    const sensors = items.filter((i) => i.TYPE === 'SENSOR');
+    if (sensors.some((i) => !hasSensorValues(i))) {
+      const scanned = await scanAll({ TableName: TABLE_NAME });
+      return scanned
+        .filter((i) => i.TYPE === 'SENSOR' && i.BATCH_ID === batchId)
+        .sort((a, b) => String(a.TIMESTAMP).localeCompare(String(b.TIMESTAMP)));
+    }
+    return sensors;
   } catch (err) {
     if (!canFallbackToScan(err)) throw err;
     const items = await scanAll({ TableName: TABLE_NAME });
@@ -188,7 +211,16 @@ async function getFactoryReadings(factoryId, { limit = 100, startTime, endTime }
 
   try {
     const result = await ddb.send(new QueryCommand(params));
-    return (result.Items || []).filter((i) => i.TYPE === 'SENSOR');
+    const sensors = (result.Items || []).filter((i) => i.TYPE === 'SENSOR');
+    if (sensors.some((i) => !hasSensorValues(i))) {
+      let items = await scanSensorsForFactory(factoryId);
+      if (startTime) items = items.filter((i) => String(i.TIMESTAMP) >= startTime);
+      if (endTime) items = items.filter((i) => String(i.TIMESTAMP) <= endTime);
+      return items
+        .sort((a, b) => String(b.TIMESTAMP).localeCompare(String(a.TIMESTAMP)))
+        .slice(0, Number(limit));
+    }
+    return sensors;
   } catch (err) {
     if (!canFallbackToScan(err)) throw err;
     let items = await scanSensorsForFactory(factoryId);
@@ -217,6 +249,11 @@ async function getFactoryBatches(factoryId) {
   try {
     const result = await ddb.send(new QueryCommand(params));
     sensorItems = (result.Items || []).filter((i) => i.TYPE === 'SENSOR');
+    if (sensorItems.some((i) => !hasSensorValues(i))) {
+      sensorItems = await scanSensorsForFactory(factoryId);
+      sensorItems.sort((a, b) => String(b.TIMESTAMP).localeCompare(String(a.TIMESTAMP)));
+      sensorItems = sensorItems.slice(0, 2000);
+    }
   } catch (err) {
     if (!canFallbackToScan(err)) throw err;
     sensorItems = await scanSensorsForFactory(factoryId);
@@ -252,8 +289,10 @@ async function getFactoryBatches(factoryId) {
       batchId,
       lastTimestamp: latest.TIMESTAMP,
       latestTemperature: latest.TEMPERATURE ?? null,
-      latestColor: latest.COLOR ?? null,
-      latestMq135: latest.MQ135 ?? null,
+      latestRgRatio: readingValue(latest, 'RG_RATIO', 'COLOR'),
+      latestMq137: readingValue(latest, 'MQ137', 'MQ135'),
+      latestTgs2620: readingValue(latest, 'TGS2620'),
+      latestTgs822: readingValue(latest, 'TGS822'),
       glp: summary?.GLP ?? null,
       price,
     };
