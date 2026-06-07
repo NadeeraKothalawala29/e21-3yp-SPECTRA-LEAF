@@ -56,9 +56,11 @@ export default function OfficerDashboard() {
 
   const latest = readings[0] ?? null;
 
-  const tempTrend  = useMemo(() => readings.map(r => r.temperature ?? 0).reverse(), [readings]);
-  const mqTrend    = useMemo(() => readings.map(r => r.mq135       ?? 0).reverse(), [readings]);
-  const colorTrend = useMemo(() => readings.map(r => r.color       ?? 0).reverse(), [readings]);
+  const tempTrend    = useMemo(() => readings.map(r => r.temperature ?? 0).reverse(), [readings]);
+  const rgTrend      = useMemo(() => readings.map(r => r.rgRatio     ?? 0).reverse(), [readings]);
+  const mq137Trend   = useMemo(() => readings.map(r => r.mq137       ?? 0).reverse(), [readings]);
+  const tgs2620Trend = useMemo(() => readings.map(r => r.tgs2620     ?? 0).reverse(), [readings]);
+  const tgs822Trend  = useMemo(() => readings.map(r => r.tgs822      ?? 0).reverse(), [readings]);
 
   /* Time-series for the Sensors tab (oldest → newest) */
   const seriesData = useMemo(() => {
@@ -67,8 +69,10 @@ export default function OfficerDashboard() {
       .map((r) => ({
         t: format(new Date(r.timestamp), 'HH:mm:ss'),
         temperature: r.temperature ?? null,
-        mq135: r.mq135 ?? null,
-        color: r.color ?? null,
+        rgRatio: r.rgRatio ?? null,
+        mq137: r.mq137 ?? null,
+        tgs2620: r.tgs2620 ?? null,
+        tgs822: r.tgs822 ?? null,
       }));
   }, [readings]);
 
@@ -252,12 +256,18 @@ export default function OfficerDashboard() {
                 <Stat label="Temperature"
                       value={activeBatch.latestTemperature !== null
                         ? `${activeBatch.latestTemperature.toFixed(1)} °C` : '—'} />
-                <Stat label="MQ135 ppm"
-                      value={activeBatch.latestMq135 !== null
-                        ? `${activeBatch.latestMq135.toFixed(0)}` : '—'} />
-                <Stat label="Color"
-                      value={activeBatch.latestColor !== null
-                        ? `${activeBatch.latestColor.toFixed(1)}` : '—'} />
+                <Stat label="RG Ratio"
+                      value={activeBatch.latestRgRatio != null
+                        ? `${activeBatch.latestRgRatio.toFixed(1)}` : '—'} />
+                <Stat label="MQ137"
+                      value={activeBatch.latestMq137 != null
+                        ? `${activeBatch.latestMq137.toFixed(0)}` : '—'} />
+                <Stat label="TGS2620"
+                      value={activeBatch.latestTgs2620 != null
+                        ? `${activeBatch.latestTgs2620.toFixed(0)}` : '—'} />
+                <Stat label="TGS822"
+                      value={activeBatch.latestTgs822 != null
+                        ? `${activeBatch.latestTgs822.toFixed(0)}` : '—'} />
                 <Button
                   onClick={() => {
                     setGlpTarget(activeBatch);
@@ -274,9 +284,11 @@ export default function OfficerDashboard() {
       )}
 
       {/* Sensor cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
         {readingsLoading ? (
           <>
+            <SkeletonBlock className="h-40" />
+            <SkeletonBlock className="h-40" />
             <SkeletonBlock className="h-40" />
             <SkeletonBlock className="h-40" />
             <SkeletonBlock className="h-40" />
@@ -285,10 +297,14 @@ export default function OfficerDashboard() {
           <>
             <SensorCard label="Temperature" value={latest?.temperature ?? null} unit="°C"
               trend={tempTrend} color="var(--accent-primary)" />
-            <SensorCard label="MQ135" value={latest?.mq135 ?? null} unit="ppm"
-              trend={mqTrend} color="var(--accent-secondary)" precision={0} />
-            <SensorCard label="Color" value={latest?.color ?? null} unit=""
-              trend={colorTrend} color="var(--accent-warn)" precision={0} />
+            <SensorCard label="RG Ratio" value={latest?.rgRatio ?? null} unit=""
+              trend={rgTrend} color="var(--accent-warn)" precision={1} />
+            <SensorCard label="MQ137" value={latest?.mq137 ?? null} unit=""
+              trend={mq137Trend} color="var(--accent-secondary)" precision={0} />
+            <SensorCard label="TGS2620" value={latest?.tgs2620 ?? null} unit=""
+              trend={tgs2620Trend} color="var(--accent-danger)" precision={0} />
+            <SensorCard label="TGS822" value={latest?.tgs822 ?? null} unit=""
+              trend={tgs822Trend} color="var(--accent-primary)" precision={0} />
           </>
         )}
       </div>
@@ -352,8 +368,8 @@ export default function OfficerDashboard() {
 
         <Card>
           <CardHeader
-            title="MQ135 Gas Concentration"
-            subtitle={`ppm — last ${seriesData.length} samples`}
+            title="RG Ratio over Time"
+            subtitle={`Ratio — last ${seriesData.length} samples`}
             right={<Badge tone="info">Live</Badge>}
           />
           <CardBody>
@@ -365,7 +381,7 @@ export default function OfficerDashboard() {
               <LineChart
                 data={seriesData}
                 xKey="t"
-                series={[{ dataKey: 'mq135', name: 'MQ135', color: 'var(--accent-secondary)' }]}
+                series={[{ dataKey: 'rgRatio', name: 'RG Ratio', color: 'var(--accent-warn)' }]}
                 height={240}
               />
             )}
@@ -374,8 +390,8 @@ export default function OfficerDashboard() {
 
         <Card>
           <CardHeader
-            title="Color Index over Time"
-            subtitle={`Chromatic value — last ${seriesData.length} samples`}
+            title="MQ137 Reading"
+            subtitle={`Last ${seriesData.length} samples`}
             right={<Badge tone="warn">Live</Badge>}
           />
           <CardBody>
@@ -387,7 +403,51 @@ export default function OfficerDashboard() {
               <LineChart
                 data={seriesData}
                 xKey="t"
-                series={[{ dataKey: 'color', name: 'Color', color: 'var(--accent-warn)' }]}
+                series={[{ dataKey: 'mq137', name: 'MQ137', color: 'var(--accent-secondary)' }]}
+                height={240}
+              />
+            )}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="TGS2620 Reading"
+            subtitle={`Last ${seriesData.length} samples`}
+            right={<Badge tone="warn">Live</Badge>}
+          />
+          <CardBody>
+            {readingsLoading ? (
+              <SkeletonBlock className="h-60" />
+            ) : seriesData.length === 0 ? (
+              <EmptyChart />
+            ) : (
+              <LineChart
+                data={seriesData}
+                xKey="t"
+                series={[{ dataKey: 'tgs2620', name: 'TGS2620', color: 'var(--accent-danger)' }]}
+                height={240}
+              />
+            )}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="TGS822 Reading"
+            subtitle={`Last ${seriesData.length} samples`}
+            right={<Badge tone="warn">Live</Badge>}
+          />
+          <CardBody>
+            {readingsLoading ? (
+              <SkeletonBlock className="h-60" />
+            ) : seriesData.length === 0 ? (
+              <EmptyChart />
+            ) : (
+              <LineChart
+                data={seriesData}
+                xKey="t"
+                series={[{ dataKey: 'tgs822', name: 'TGS822', color: 'var(--accent-primary)' }]}
                 height={240}
               />
             )}
@@ -397,7 +457,7 @@ export default function OfficerDashboard() {
         <Card>
           <CardHeader
             title="All Sensors Combined"
-            subtitle="Temperature · MQ135 · Color overlaid"
+            subtitle="Temperature · RG Ratio · MQ137 · TGS2620 · TGS822 overlaid"
           />
           <CardBody>
             {readingsLoading ? (
@@ -411,8 +471,10 @@ export default function OfficerDashboard() {
                 showLegend
                 series={[
                   { dataKey: 'temperature', name: 'Temperature (°C)', color: 'var(--accent-primary)' },
-                  { dataKey: 'mq135',       name: 'MQ135 (ppm)',      color: 'var(--accent-secondary)' },
-                  { dataKey: 'color',       name: 'Color',            color: 'var(--accent-warn)' },
+                  { dataKey: 'rgRatio',     name: 'RG Ratio',         color: 'var(--accent-warn)' },
+                  { dataKey: 'mq137',       name: 'MQ137',            color: 'var(--accent-secondary)' },
+                  { dataKey: 'tgs2620',     name: 'TGS2620',          color: 'var(--accent-danger)' },
+                  { dataKey: 'tgs822',      name: 'TGS822',           color: 'var(--accent-primary)' },
                 ]}
                 height={300}
               />
@@ -487,8 +549,11 @@ export default function OfficerDashboard() {
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-3 pt-3 border-t border-border">
                     <MiniStat label="GLP" value={b.glp !== null && b.glp !== undefined ? `${b.glp}%` : '—'} />
-                    <MiniStat label="Temp" value={b.latestTemperature !== null ? `${b.latestTemperature.toFixed(1)}°` : '—'} />
-                    <MiniStat label="MQ" value={b.latestMq135 !== null ? `${b.latestMq135.toFixed(0)}` : '—'} />
+                    <MiniStat label="Temp" value={b.latestTemperature != null ? `${b.latestTemperature.toFixed(1)}°` : '—'} />
+                    <MiniStat label="RG" value={b.latestRgRatio != null ? `${b.latestRgRatio.toFixed(1)}` : '—'} />
+                    <MiniStat label="MQ137" value={b.latestMq137 != null ? `${b.latestMq137.toFixed(0)}` : '—'} />
+                    <MiniStat label="TGS2620" value={b.latestTgs2620 != null ? `${b.latestTgs2620.toFixed(0)}` : '—'} />
+                    <MiniStat label="TGS822" value={b.latestTgs822 != null ? `${b.latestTgs822.toFixed(0)}` : '—'} />
                   </div>
                   <Button
                     variant="secondary"

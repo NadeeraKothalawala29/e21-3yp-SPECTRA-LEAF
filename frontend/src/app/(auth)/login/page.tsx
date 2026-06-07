@@ -241,7 +241,7 @@ export default function LoginPage() {
         </div>
 
         {/* Copyright */}
-        <div className="text-[12px] text-slate-400 shrink-0">Copyright © 2025</div>
+        <div className="text-[12px] text-slate-400 shrink-0">Copyright © 2026</div>
       </div>
 
       {/* ══ RIGHT: Slideshow (54%) ══ */}

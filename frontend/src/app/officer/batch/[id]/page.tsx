@@ -28,15 +28,29 @@ export default function BatchDetailPage() {
     })),
     [graphs]
   );
-  const mqData = useMemo(
-    () => (graphs?.mq135 ?? []).map((p) => ({
+  const rgData = useMemo(
+    () => (graphs?.rgRatio ?? []).map((p) => ({
       t: format(new Date(p.timestamp), 'HH:mm'),
       value: p.value,
     })),
     [graphs]
   );
-  const colorData = useMemo(
-    () => (graphs?.color ?? []).map((p) => ({
+  const mq137Data = useMemo(
+    () => (graphs?.mq137 ?? []).map((p) => ({
+      t: format(new Date(p.timestamp), 'HH:mm'),
+      value: p.value,
+    })),
+    [graphs]
+  );
+  const tgs2620Data = useMemo(
+    () => (graphs?.tgs2620 ?? []).map((p) => ({
+      t: format(new Date(p.timestamp), 'HH:mm'),
+      value: p.value,
+    })),
+    [graphs]
+  );
+  const tgs822Data = useMemo(
+    () => (graphs?.tgs822 ?? []).map((p) => ({
       t: format(new Date(p.timestamp), 'HH:mm'),
       value: p.value,
     })),
@@ -125,13 +139,13 @@ export default function BatchDetailPage() {
         </Card>
 
         <Card>
-          <CardHeader title="MQ135" subtitle="Gas / ppm over time" />
+          <CardHeader title="RG Ratio" subtitle="Ratio over time" />
           <CardBody>
-            {mqData.length > 0 ? (
+            {rgData.length > 0 ? (
               <LineChart
-                data={mqData}
+                data={rgData}
                 xKey="t"
-                series={[{ dataKey: 'value', name: 'MQ135', color: 'var(--accent-secondary)' }]}
+                series={[{ dataKey: 'value', name: 'RG Ratio', color: 'var(--accent-warn)' }]}
                 height={220}
               />
             ) : <Empty />}
@@ -139,13 +153,41 @@ export default function BatchDetailPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Color" subtitle="Chromatic index over time" />
+          <CardHeader title="MQ137 Reading" subtitle="Sensor reading over time" />
           <CardBody>
-            {colorData.length > 0 ? (
+            {mq137Data.length > 0 ? (
               <LineChart
-                data={colorData}
+                data={mq137Data}
                 xKey="t"
-                series={[{ dataKey: 'value', name: 'Color', color: 'var(--accent-warn)' }]}
+                series={[{ dataKey: 'value', name: 'MQ137', color: 'var(--accent-secondary)' }]}
+                height={220}
+              />
+            ) : <Empty />}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="TGS2620 Reading" subtitle="Sensor reading over time" />
+          <CardBody>
+            {tgs2620Data.length > 0 ? (
+              <LineChart
+                data={tgs2620Data}
+                xKey="t"
+                series={[{ dataKey: 'value', name: 'TGS2620', color: 'var(--accent-danger)' }]}
+                height={220}
+              />
+            ) : <Empty />}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="TGS822 Reading" subtitle="Sensor reading over time" />
+          <CardBody>
+            {tgs822Data.length > 0 ? (
+              <LineChart
+                data={tgs822Data}
+                xKey="t"
+                series={[{ dataKey: 'value', name: 'TGS822', color: 'var(--accent-primary)' }]}
                 height={220}
               />
             ) : <Empty />}

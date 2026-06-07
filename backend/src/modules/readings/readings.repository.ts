@@ -8,9 +8,13 @@ type AwsReadingItem = Partial<Reading> & {
   TYPE?: string;
   FACTORY_ID?: string;
   BATCH_ID?: string;
-  COLOR?: number;
+  RG_RATIO?: number;
   TEMPERATURE?: number;
+  MQ137?: number;
   MQ135?: number;
+  TGS2620?: number;
+  TGS822?: number;
+  COLOR?: number;
 };
 
 function compactDeviceId(deviceId: string) {
@@ -22,16 +26,14 @@ function uniqueDeviceIds(deviceId: string) {
 }
 
 function toReading(item: AwsReadingItem): Reading {
-  const color = Number(item.COLOR ?? 0);
-
   return {
     deviceId: item.deviceId ?? item.DEVICE_ID ?? '',
     timestamp: item.timestamp ?? item.TIMESTAMP ?? '',
     temperature: Number(item.temperature ?? item.TEMPERATURE ?? 0),
-    mq137: Number(item.mq137 ?? item.MQ135 ?? 0),
-    colorR: Number(item.colorR ?? color),
-    colorG: Number(item.colorG ?? color),
-    colorB: Number(item.colorB ?? color),
+    rgRatio: Number(item.rgRatio ?? item.RG_RATIO ?? item.COLOR ?? 0),
+    mq137: Number(item.mq137 ?? item.MQ137 ?? item.MQ135 ?? 0),
+    tgs2620: Number(item.tgs2620 ?? item.TGS2620 ?? 0),
+    tgs822: Number(item.tgs822 ?? item.TGS822 ?? 0),
     batchId: item.batchId ?? item.BATCH_ID,
   };
 }
@@ -92,9 +94,11 @@ export const readingsRepository = {
           TIMESTAMP: reading.timestamp,
           TYPE: 'SENSOR',
           BATCH_ID: reading.batchId,
-          COLOR: (reading.colorR + reading.colorG + reading.colorB) / 3,
+          RG_RATIO: reading.rgRatio,
           TEMPERATURE: reading.temperature,
-          MQ135: reading.mq137,
+          MQ137: reading.mq137,
+          TGS2620: reading.tgs2620,
+          TGS822: reading.tgs822,
         },
       })
     );

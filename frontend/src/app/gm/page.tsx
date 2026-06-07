@@ -148,7 +148,7 @@ export default function GMPage() {
                   yKey="revenue"
                   height={260}
                   alternateColor
-                  yTickFormatter={(v) => `$${v}`}
+                  yTickFormatter={(v) => fmtCurrency(v as number)}
                 />
               ) : (
                 <div className="text-text-muted text-sm py-6 text-center">No data</div>

@@ -4,6 +4,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { BatchListItem, BatchSummary, FactoryDashboard } from '@/types';
 
+function num(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getObjectPayload<T>(payload: unknown, fallback: T): T {
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return ((payload as { data?: T }).data ?? fallback) as T;
+  }
+  return (payload as T) ?? fallback;
+}
+
 function getArrayPayload<T>(payload: unknown, key: string): T[] {
   if (Array.isArray(payload)) return payload as T[];
   if (payload && typeof payload === 'object') {
@@ -14,26 +27,34 @@ function getArrayPayload<T>(payload: unknown, key: string): T[] {
   return [];
 }
 
-function getObjectPayload<T>(payload: unknown, fallback: T): T {
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    return ((payload as { data?: T }).data ?? fallback) as T;
-  }
-  return (payload as T) ?? fallback;
+function normalizeBatch(item: any): BatchListItem {
+  return {
+    batchId: item.batchId ?? item.BATCH_ID ?? '',
+    lastTimestamp: item.lastTimestamp ?? item.TIMESTAMP ?? null,
+    latestTemperature: num(item.latestTemperature ?? item.TEMPERATURE),
+    latestRgRatio: num(item.latestRgRatio ?? item.RG_RATIO ?? item.latestColor ?? item.COLOR),
+    latestMq137: num(item.latestMq137 ?? item.MQ137 ?? item.latestMq135 ?? item.MQ135),
+    latestTgs2620: num(item.latestTgs2620 ?? item.TGS2620),
+    latestTgs822: num(item.latestTgs822 ?? item.TGS822),
+    glp: num(item.glp ?? item.GLP),
+    price: num(item.price ?? item.PRICE),
+  };
 }
 
-export function useFactoryBatches(factoryId: string | null, pollMs = 3_000) {
+export function useFactoryBatches(factoryId: string | null, pollMs = 30_000) {
   const [batches, setBatches] = useState<BatchListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!factoryId) {
+      setBatches([]);
       setLoading(false);
       return;
     }
     try {
       const res = await api.get(`/factories/${factoryId}/batches`);
-      setBatches(getArrayPayload<BatchListItem>(res.data, 'batches'));
+      setBatches(getArrayPayload<any>(res.data, 'batches').map(normalizeBatch));
       setError(null);
     } catch (e: any) {
       setBatches([]);
@@ -46,10 +67,10 @@ export function useFactoryBatches(factoryId: string | null, pollMs = 3_000) {
   useEffect(() => {
     load();
     if (pollMs && factoryId) {
-      const id = setInterval(load, pollMs);
-      return () => clearInterval(id);
+      const id = window.setInterval(load, pollMs);
+      return () => window.clearInterval(id);
     }
-  }, [load, pollMs, factoryId]);
+  }, [factoryId, load, pollMs]);
 
   return { batches, loading, error, reload: load };
 }
@@ -61,17 +82,34 @@ export function useBatchSummary(batchId: string | null) {
 
   useEffect(() => {
     if (!batchId) {
+      setSummary(null);
       setLoading(false);
       return;
     }
-    api
-      .get<{ data: BatchSummary }>(`/batches/${batchId}/summary`)
-      .then((r) => setSummary(getObjectPayload<BatchSummary | null>(r.data, null)))
-      .catch((e) => {
-        setSummary(null);
-        setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load summary');
-      })
-      .finally(() => setLoading(false));
+
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await api.get(`/batches/${batchId}/summary`);
+        if (!cancelled) {
+          setSummary(getObjectPayload<BatchSummary | null>(res.data, null));
+          setError(null);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setSummary(null);
+          setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load summary');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [batchId]);
 
   return { summary, loading, error };
@@ -84,17 +122,34 @@ export function useFactoryDashboard(factoryId: string | null) {
 
   useEffect(() => {
     if (!factoryId) {
+      setDashboard(null);
       setLoading(false);
       return;
     }
-    api
-      .get(`/factories/${factoryId}/dashboard`)
-      .then((r) => setDashboard(getObjectPayload<FactoryDashboard | null>(r.data, null)))
-      .catch((e) => {
-        setDashboard(null);
-        setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load dashboard');
-      })
-      .finally(() => setLoading(false));
+
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await api.get(`/factories/${factoryId}/dashboard`);
+        if (!cancelled) {
+          setDashboard(getObjectPayload<FactoryDashboard | null>(res.data, null));
+          setError(null);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setDashboard(null);
+          setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load dashboard');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [factoryId]);
 
   return { dashboard, loading, error };

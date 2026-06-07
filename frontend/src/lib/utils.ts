@@ -1,10 +1,11 @@
+import { clsx, type ClassValue } from 'clsx';
 import { format, formatDistanceStrict } from 'date-fns';
 
-export function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ');
+export function cn(...inputs: ClassValue[]) {
+  return clsx(inputs);
 }
 
-export function fmtDate(iso?: string) {
+export function fmtDate(iso?: string | null) {
   if (!iso) return '—';
   try {
     return format(new Date(iso), 'MMM d, yyyy HH:mm');
@@ -13,7 +14,7 @@ export function fmtDate(iso?: string) {
   }
 }
 
-export function fmtShortDate(iso?: string) {
+export function fmtShortDate(iso?: string | null) {
   if (!iso) return '—';
   try {
     return format(new Date(iso), 'MMM d');
@@ -32,9 +33,14 @@ export function fmtDuration(from?: string, to?: string) {
   }
 }
 
-export function fmtCurrency(v?: number) {
-  if (v === undefined || v === null) return '—';
-  return `$${v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+export function fmtCurrency(value?: number | string | null) {
+  if (value === null || value === undefined || value === '') return '—';
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '—';
+  const formatted = new Intl.NumberFormat('en-LK', {
+    maximumFractionDigits: 0,
+  }).format(num);
+  return `LKR ${formatted}`;
 }
 
 export function fmtNumber(v: number, digits = 1) {

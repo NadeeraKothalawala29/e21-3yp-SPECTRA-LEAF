@@ -18,9 +18,11 @@ export default function SensorsPage() {
 
   const latest = readings[0] ?? null;
 
-  const tempTrend  = useMemo(() => readings.map(r => r.temperature ?? 0).reverse(), [readings]);
-  const mqTrend    = useMemo(() => readings.map(r => r.mq135       ?? 0).reverse(), [readings]);
-  const colorTrend = useMemo(() => readings.map(r => r.color       ?? 0).reverse(), [readings]);
+  const tempTrend    = useMemo(() => readings.map(r => r.temperature ?? 0).reverse(), [readings]);
+  const rgTrend      = useMemo(() => readings.map(r => r.rgRatio     ?? 0).reverse(), [readings]);
+  const mq137Trend   = useMemo(() => readings.map(r => r.mq137       ?? 0).reverse(), [readings]);
+  const tgs2620Trend = useMemo(() => readings.map(r => r.tgs2620     ?? 0).reverse(), [readings]);
+  const tgs822Trend  = useMemo(() => readings.map(r => r.tgs822      ?? 0).reverse(), [readings]);
 
   const devices = useMemo(() => {
     const set = new Set<string>();
@@ -70,9 +72,11 @@ export default function SensorsPage() {
         tiles={tiles}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
         {loading ? (
           <>
+            <SkeletonBlock className="h-40" />
+            <SkeletonBlock className="h-40" />
             <SkeletonBlock className="h-40" />
             <SkeletonBlock className="h-40" />
             <SkeletonBlock className="h-40" />
@@ -87,19 +91,35 @@ export default function SensorsPage() {
               color="var(--accent-primary)"
             />
             <SensorCard
-              label="MQ135 Gas"
-              value={latest?.mq135 ?? null}
-              unit="ppm"
-              trend={mqTrend}
+              label="RG Ratio"
+              value={latest?.rgRatio ?? null}
+              unit=""
+              trend={rgTrend}
+              color="var(--accent-warn)"
+              precision={1}
+            />
+            <SensorCard
+              label="MQ137 Reading"
+              value={latest?.mq137 ?? null}
+              unit=""
+              trend={mq137Trend}
               color="var(--accent-secondary)"
               precision={0}
             />
             <SensorCard
-              label="Color Index"
-              value={latest?.color ?? null}
+              label="TGS2620 Reading"
+              value={latest?.tgs2620 ?? null}
               unit=""
-              trend={colorTrend}
-              color="var(--accent-warn)"
+              trend={tgs2620Trend}
+              color="var(--accent-danger)"
+              precision={0}
+            />
+            <SensorCard
+              label="TGS822 Reading"
+              value={latest?.tgs822 ?? null}
+              unit=""
+              trend={tgs822Trend}
+              color="var(--accent-primary)"
               precision={0}
             />
           </>
@@ -127,10 +147,13 @@ export default function SensorsPage() {
               <Thead>
                 <Th>Timestamp</Th>
                 <Th>Device</Th>
+                <Th>Factory</Th>
                 <Th>Batch</Th>
+                <Th>RG Ratio</Th>
                 <Th>Temp °C</Th>
-                <Th>MQ135 ppm</Th>
-                <Th>Color</Th>
+                <Th>MQ137 Reading</Th>
+                <Th>TGS2620 Reading</Th>
+                <Th>TGS822 Reading</Th>
               </Thead>
               <tbody>
                 {readings.map((r, i) => (
@@ -139,10 +162,13 @@ export default function SensorsPage() {
                       {format(new Date(r.timestamp), 'MMM dd HH:mm:ss')}
                     </Td>
                     <Td className="font-mono text-[12px]">{r.deviceId ?? '—'}</Td>
+                    <Td className="font-mono text-[12px]">{r.factoryId ?? '—'}</Td>
                     <Td className="font-mono text-[12px]">{r.batchId ?? '—'}</Td>
+                    <Td className="tabular">{r.rgRatio?.toFixed(1) ?? '—'}</Td>
                     <Td className="tabular">{r.temperature?.toFixed(1) ?? '—'}</Td>
-                    <Td className="tabular">{r.mq135?.toFixed(0) ?? '—'}</Td>
-                    <Td className="tabular">{r.color?.toFixed(1) ?? '—'}</Td>
+                    <Td className="tabular">{r.mq137?.toFixed(0) ?? '—'}</Td>
+                    <Td className="tabular">{r.tgs2620?.toFixed(0) ?? '—'}</Td>
+                    <Td className="tabular">{r.tgs822?.toFixed(0) ?? '—'}</Td>
                   </Tr>
                 ))}
               </tbody>
