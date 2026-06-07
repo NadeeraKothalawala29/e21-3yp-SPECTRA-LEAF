@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: spectraleaf-dynamodb
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    ports:
+      - "8000:8000"
+    working_dir: /home/dynamodblocal
