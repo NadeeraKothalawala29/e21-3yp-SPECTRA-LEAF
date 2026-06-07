@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { BatchListItem, BatchSummary, FactoryDashboard } from '@/types';
 
@@ -8,6 +8,23 @@ function num(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getObjectPayload<T>(payload: unknown, fallback: T): T {
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return ((payload as { data?: T }).data ?? fallback) as T;
+  }
+  return (payload as T) ?? fallback;
+}
+
+function getArrayPayload<T>(payload: unknown, key: string): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+    if (Array.isArray(record.data)) return record.data as T[];
+    if (Array.isArray(record[key])) return record[key] as T[];
+  }
+  return [];
 }
 
 function normalizeBatch(item: any): BatchListItem {
@@ -24,9 +41,10 @@ function normalizeBatch(item: any): BatchListItem {
   };
 }
 
-export function useFactoryBatches(factoryId: string, intervalMs = 30_000) {
+export function useFactoryBatches(factoryId: string | null, pollMs = 30_000) {
   const [batches, setBatches] = useState<BatchListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!factoryId) {
@@ -36,34 +54,31 @@ export function useFactoryBatches(factoryId: string, intervalMs = 30_000) {
     }
     try {
       const res = await api.get(`/factories/${factoryId}/batches`);
-      const payload = res.data?.data ?? res.data?.batches ?? [];
-      setBatches((Array.isArray(payload) ? payload : []).map(normalizeBatch));
-    } catch {
+      setBatches(getArrayPayload<any>(res.data, 'batches').map(normalizeBatch));
+      setError(null);
+    } catch (e: any) {
       setBatches([]);
+      setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load batches');
     } finally {
       setLoading(false);
     }
   }, [factoryId]);
 
   useEffect(() => {
-    let active = true;
-    const run = async () => {
-      if (active) await load();
-    };
-    run();
-    const timer = window.setInterval(run, intervalMs);
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-    };
-  }, [intervalMs, load]);
+    load();
+    if (pollMs && factoryId) {
+      const id = window.setInterval(load, pollMs);
+      return () => window.clearInterval(id);
+    }
+  }, [factoryId, load, pollMs]);
 
-  return { batches, loading, reload: load };
+  return { batches, loading, error, reload: load };
 }
 
 export function useBatchSummary(batchId: string | null) {
   const [summary, setSummary] = useState<BatchSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!batchId) {
@@ -77,10 +92,15 @@ export function useBatchSummary(batchId: string | null) {
       setLoading(true);
       try {
         const res = await api.get(`/batches/${batchId}/summary`);
-        const payload = res.data?.data ?? res.data ?? null;
-        if (!cancelled) setSummary(payload);
-      } catch {
-        if (!cancelled) setSummary(null);
+        if (!cancelled) {
+          setSummary(getObjectPayload<BatchSummary | null>(res.data, null));
+          setError(null);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setSummary(null);
+          setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load summary');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -92,12 +112,13 @@ export function useBatchSummary(batchId: string | null) {
     };
   }, [batchId]);
 
-  return { summary, loading };
+  return { summary, loading, error };
 }
 
-export function useFactoryDashboard(factoryId: string) {
+export function useFactoryDashboard(factoryId: string | null) {
   const [dashboard, setDashboard] = useState<FactoryDashboard | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!factoryId) {
@@ -108,12 +129,18 @@ export function useFactoryDashboard(factoryId: string) {
 
     let cancelled = false;
     async function load() {
+      setLoading(true);
       try {
         const res = await api.get(`/factories/${factoryId}/dashboard`);
-        const payload = res.data?.data ?? res.data ?? null;
-        if (!cancelled) setDashboard(payload);
-      } catch {
-        if (!cancelled) setDashboard(null);
+        if (!cancelled) {
+          setDashboard(getObjectPayload<FactoryDashboard | null>(res.data, null));
+          setError(null);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setDashboard(null);
+          setError(e.response?.data?.error ?? e.response?.data?.message ?? 'Failed to load dashboard');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -125,5 +152,5 @@ export function useFactoryDashboard(factoryId: string) {
     };
   }, [factoryId]);
 
-  return { dashboard, loading };
+  return { dashboard, loading, error };
 }

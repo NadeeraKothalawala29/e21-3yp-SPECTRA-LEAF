@@ -1,5 +1,12 @@
 export type Role = 'OFFICER' | 'MANAGER' | 'GENERAL_MANAGER';
 
+export interface AuthState {
+  role: Role;
+  factoryId: string;
+  factoryIds: string[];
+  displayName: string;
+}
+
 export interface SensorReading {
   timestamp: string;
   deviceId: string | null;
@@ -25,6 +32,15 @@ export interface BatchGraphs {
   tgs822: GraphPoint[];
 }
 
+export interface BatchSummary {
+  batchId: string;
+  factoryId: string;
+  glp: number | null;
+  price: number | null;
+  summaryKey?: string;
+  type?: string;
+}
+
 export interface BatchListItem {
   batchId: string;
   lastTimestamp: string | null;
@@ -37,15 +53,6 @@ export interface BatchListItem {
   price: number | null;
 }
 
-export interface BatchSummary {
-  batchId: string;
-  factoryId: string;
-  glp: number | null;
-  price: number | null;
-  summaryKey?: string;
-  type?: string;
-}
-
 export interface PricedBatchSummary {
   batchId: string;
   factoryId?: string;
@@ -54,6 +61,9 @@ export interface PricedBatchSummary {
 }
 
 export interface FactoryDashboard {
+  factoryId?: string;
+  totalBatches?: number;
+  latestReadings?: SensorReading[];
   highestPriceBatch: PricedBatchSummary | null;
   lowestPriceBatch: PricedBatchSummary | null;
 }
@@ -72,4 +82,11 @@ export interface GeneralSummary {
   topFactory: string | null;
   topBatch: PricedBatchSummary | null;
   factoryContributionPercentages: Record<string, number>;
+}
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
 }
