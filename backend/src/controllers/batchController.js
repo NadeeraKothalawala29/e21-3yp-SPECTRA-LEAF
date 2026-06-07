@@ -7,6 +7,10 @@ const {
 const { ok, notFound, badRequest, serverError } = require('../utils/response');
 const { requireFields, isValidNumber } = require('../utils/validation');
 
+function readingValue(item, key, fallbackKey) {
+  return item[key] ?? (fallbackKey ? item[fallbackKey] : undefined) ?? null;
+}
+
 // GET /api/batches/:batchId/readings
 async function getReadings(req, res) {
   const { batchId } = req.params;
@@ -17,9 +21,11 @@ async function getReadings(req, res) {
       deviceId: i.DEVICE_ID,
       factoryId: i.FACTORY_ID,
       batchId: i.BATCH_ID,
-      color: i.COLOR ?? null,
+      rgRatio: readingValue(i, 'RG_RATIO', 'COLOR'),
       temperature: i.TEMPERATURE ?? null,
-      mq135: i.MQ135 ?? null,
+      mq137: readingValue(i, 'MQ137', 'MQ135'),
+      tgs2620: readingValue(i, 'TGS2620'),
+      tgs822: readingValue(i, 'TGS822'),
     }));
     return res.json({
       success: true,
@@ -38,15 +44,21 @@ async function getGraphs(req, res) {
   try {
     const items = await getBatchReadings(batchId);
     const temperature = [];
-    const color = [];
-    const mq135 = [];
+    const rgRatio = [];
+    const mq137 = [];
+    const tgs2620 = [];
+    const tgs822 = [];
     for (const i of items) {
       const ts = i.TIMESTAMP;
       if (i.TEMPERATURE != null) temperature.push({ timestamp: ts, value: i.TEMPERATURE });
-      if (i.COLOR != null) color.push({ timestamp: ts, value: i.COLOR });
-      if (i.MQ135 != null) mq135.push({ timestamp: ts, value: i.MQ135 });
+      const rg = readingValue(i, 'RG_RATIO', 'COLOR');
+      const mq = readingValue(i, 'MQ137', 'MQ135');
+      if (rg != null) rgRatio.push({ timestamp: ts, value: rg });
+      if (mq != null) mq137.push({ timestamp: ts, value: mq });
+      if (i.TGS2620 != null) tgs2620.push({ timestamp: ts, value: i.TGS2620 });
+      if (i.TGS822 != null) tgs822.push({ timestamp: ts, value: i.TGS822 });
     }
-    return res.json({ success: true, batchId, temperature, color, mq135 });
+    return res.json({ success: true, batchId, temperature, rgRatio, mq137, tgs2620, tgs822 });
   } catch (err) {
     return serverError(res, 'Failed to fetch graph data', err);
   }

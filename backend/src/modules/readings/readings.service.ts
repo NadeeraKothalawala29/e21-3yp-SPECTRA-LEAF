@@ -9,10 +9,10 @@ export const readingsService = {
     timestamp?: string;
     batchId?: string;
     temperature: number;
+    rgRatio: number;
     mq137: number;
-    colorR: number;
-    colorG: number;
-    colorB: number;
+    tgs2620: number;
+    tgs822: number;
   }) {
     const appDeviceId = input.deviceId.includes('-')
       ? input.deviceId
@@ -24,10 +24,10 @@ export const readingsService = {
       deviceId: appDeviceId,
       timestamp: input.timestamp ?? new Date().toISOString(),
       temperature: input.temperature,
+      rgRatio: input.rgRatio,
       mq137: input.mq137,
-      colorR: input.colorR,
-      colorG: input.colorG,
-      colorB: input.colorB,
+      tgs2620: input.tgs2620,
+      tgs822: input.tgs822,
       batchId: input.batchId ?? device.activeBatchId,
     };
     return readingsRepository.create(reading);

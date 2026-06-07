@@ -46,10 +46,10 @@ export interface Reading {
   deviceId: string;
   timestamp: string;
   temperature: number;
+  rgRatio: number;
   mq137: number;
-  colorR: number;
-  colorG: number;
-  colorB: number;
+  tgs2620: number;
+  tgs822: number;
   batchId?: string;
 }
 

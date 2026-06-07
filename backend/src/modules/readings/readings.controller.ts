@@ -8,28 +8,31 @@ const ingestSchema = z
     timestamp: z.string().optional(),
     batchId: z.string().optional(),
     temperature: z.number().optional(),
+    rgRatio: z.number().optional(),
     mq137: z.number().optional(),
-    colorR: z.number().min(0).max(255).optional(),
-    colorG: z.number().min(0).max(255).optional(),
-    colorB: z.number().min(0).max(255).optional(),
+    tgs2620: z.number().optional(),
+    tgs822: z.number().optional(),
     DEVICE_ID: z.string().min(1).optional(),
     TIMESTAMP: z.string().optional(),
     BATCH_ID: z.string().optional(),
+    RG_RATIO: z.number().optional(),
     COLOR: z.number().min(0).max(255).optional(),
     TEMPERATURE: z.number().optional(),
+    MQ137: z.number().optional(),
     MQ135: z.number().optional(),
+    TGS2620: z.number().optional(),
+    TGS822: z.number().optional(),
   })
   .transform((body) => {
-    const color = body.COLOR ?? 0;
     return {
       deviceId: body.deviceId ?? body.DEVICE_ID ?? '',
       timestamp: body.timestamp ?? body.TIMESTAMP,
       batchId: body.batchId ?? body.BATCH_ID,
       temperature: body.temperature ?? body.TEMPERATURE ?? 0,
-      mq137: body.mq137 ?? body.MQ135 ?? 0,
-      colorR: body.colorR ?? color,
-      colorG: body.colorG ?? color,
-      colorB: body.colorB ?? color,
+      rgRatio: body.rgRatio ?? body.RG_RATIO ?? body.COLOR ?? 0,
+      mq137: body.mq137 ?? body.MQ137 ?? body.MQ135 ?? 0,
+      tgs2620: body.tgs2620 ?? body.TGS2620 ?? 0,
+      tgs822: body.tgs822 ?? body.TGS822 ?? 0,
     };
   })
   .refine((body) => body.deviceId.length > 0, {

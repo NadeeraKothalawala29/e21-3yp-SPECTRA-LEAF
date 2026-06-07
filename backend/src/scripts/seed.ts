@@ -171,10 +171,10 @@ async function seedBatches() {
       deviceId: ongoing.deviceId,
       timestamp: ts,
       temperature: 24 + Math.sin(i / 4) * 2 + Math.random() * 0.6,
+      rgRatio: 40 + Math.sin(i / 6) * 4 + Math.random(),
       mq137: 120 + Math.cos(i / 5) * 25 + Math.random() * 5,
-      colorR: 120 + Math.floor(Math.random() * 40),
-      colorG: 90 + Math.floor(Math.random() * 40),
-      colorB: 60 + Math.floor(Math.random() * 30),
+      tgs2620: 400 + Math.sin(i / 5) * 35 + Math.random() * 10,
+      tgs822: 380 + Math.cos(i / 4) * 30 + Math.random() * 10,
       batchId: ongoing.batchId,
     });
   }
@@ -188,9 +188,11 @@ async function seedBatches() {
           TYPE: 'SENSOR',
           FACTORY_ID: ongoing.factoryId.replace('-', ''),
           BATCH_ID: r.batchId,
-          COLOR: (r.colorR + r.colorG + r.colorB) / 3,
+          RG_RATIO: r.rgRatio,
           TEMPERATURE: r.temperature,
-          MQ135: r.mq137,
+          MQ137: r.mq137,
+          TGS2620: r.tgs2620,
+          TGS822: r.tgs822,
         },
       })
     );
