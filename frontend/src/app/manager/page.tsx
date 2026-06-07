@@ -181,7 +181,7 @@ export default function ManagerBatchesPage() {
             <div>
               <label className="eyebrow block mb-2">Price</label>
               <div className="flex items-center gap-2">
-                <span className="font-display text-2xl text-text-muted">$</span>
+                <span className="font-display text-xl text-text-muted">LKR</span>
                 <input
                   type="number"
                   min={0}

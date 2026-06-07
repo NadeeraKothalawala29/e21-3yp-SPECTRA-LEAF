@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Props {
   open: boolean;
@@ -22,8 +23,11 @@ export function Modal({ open, onClose, title, children, footer }: Props) {
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div
+      className="fixed left-0 top-0 z-[9999] flex items-center justify-center"
+      style={{ width: '100vw', height: '100dvh' }}
+    >
       <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
         onClick={onClose}
@@ -46,6 +50,7 @@ export function Modal({ open, onClose, title, children, footer }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

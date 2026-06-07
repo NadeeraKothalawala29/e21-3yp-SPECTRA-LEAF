@@ -11,15 +11,14 @@ export const factoriesController = {
       const enriched = await Promise.all(
         batches.map(async (b) => {
           const latest = await readingsRepository.latestForBatch(b.batchId);
-          const color = latest
-            ? (latest.colorR + latest.colorG + latest.colorB) / 3
-            : null;
           return {
             batchId: b.batchId,
             lastTimestamp: b.completedAt ?? b.startedAt ?? b.createdAt,
             latestTemperature: latest?.temperature ?? null,
-            latestColor: color,
-            latestMq135: latest?.mq137 ?? null,
+            latestRgRatio: latest?.rgRatio ?? null,
+            latestMq137: latest?.mq137 ?? null,
+            latestTgs2620: latest?.tgs2620 ?? null,
+            latestTgs822: latest?.tgs822 ?? null,
             glp: b.goodLeafPercentage ?? null,
             price: b.sellingPrice ?? null,
           };
@@ -49,8 +48,10 @@ export const factoriesController = {
           factoryId,
           batchId: r.batchId ?? '',
           temperature: r.temperature,
-          color: (r.colorR + r.colorG + r.colorB) / 3,
-          mq135: r.mq137,
+          rgRatio: r.rgRatio,
+          mq137: r.mq137,
+          tgs2620: r.tgs2620,
+          tgs822: r.tgs822,
         }));
 
       res.json({ success: true, data: result });
