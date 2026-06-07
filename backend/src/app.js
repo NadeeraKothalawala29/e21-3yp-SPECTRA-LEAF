@@ -33,6 +33,13 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 
 // ─── Health ───────────────────────────────────────────────────────────────────
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'SpectraLeaf backend is running at root URL',
+  });
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
@@ -43,6 +50,7 @@ app.get('/api/health', (_req, res) => {
     },
   });
 });
+
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/sensor', sensorRoutes);
