@@ -4,8 +4,8 @@
   "description": "SpectraLeaf IoT Tea Fermentation backend — AWS DynamoDB + Express",
   "main": "src/server.js",
   "scripts": {
-    "start": "node --use-system-ca src/server.js",
-    "dev": "nodemon --exec \"node --use-system-ca\" src/server.js"
+    "start": "node src/server.js",
+    "dev": "nodemon --exec \"node\" src/server.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.565.0",
