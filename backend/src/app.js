@@ -32,6 +32,40 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 
+// ─── Temporary Auth Migration Middleware ──────────────────────────────────────
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    
+    // Attempt to temporarily parse the unverified JWT structure
+    // NOTE: This is for migration/testing only. Do NOT use in production without
+    // actually verifying the token signature with AWS Cognito JWKS.
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const payloadJson = Buffer.from(payloadBase64, 'base64').toString('utf8');
+        const payload = JSON.parse(payloadJson);
+        
+        req.user = {
+          cognitoGroups: payload['cognito:groups'] || [],
+          username: payload['cognito:username'] || payload['sub'],
+          rawToken: payload
+        };
+        console.log(`[Auth] Parsed test token for user: ${req.user.username}`);
+      }
+    } catch (err) {
+      console.warn('[Auth] Failed to parse Bearer token payload, falling back to mock state.', err.message);
+    }
+  } else {
+    // Graceful degradation: no token provided, continue as mock data layout
+    console.log('[Auth] No Bearer token found. Proceeding with unauthenticated/mock layout.');
+  }
+  
+  next();
+});
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => {
   res.json({
