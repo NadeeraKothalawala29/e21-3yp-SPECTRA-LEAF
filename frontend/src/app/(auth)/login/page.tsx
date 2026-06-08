@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { signIn, fetchAuthSession } from 'aws-amplify/auth';
 import type { Role } from '@/types';
 
 /* ─── Data ─── */
@@ -77,15 +78,45 @@ export default function LoginPage() {
     return () => clearInterval(id);
   }, [current, goTo]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) { setError('Email is required'); return; }
+    if (!email.trim() || !password.trim()) { 
+      setError('Email and password are required'); 
+      return; 
+    }
+
     setError(null);
     setLoading(true);
-    setTimeout(() => {
-      setAuth(role, 'FAC001', ['FAC001', 'FAC002']);
-      router.push(roleHomes[role]);
-    }, 600);
+
+    try {
+      await signIn({ username: email, password });
+      
+      const session = await fetchAuthSession();
+      const groups = (session.tokens?.accessToken?.payload?.['cognito:groups'] as string[]) || [];
+      
+      let mappedRole: Role = role; // fallback
+      if (groups.includes('General_Manager')) {
+        mappedRole = 'GENERAL_MANAGER';
+      } else if (groups.includes('Factory_Manager')) {
+        mappedRole = 'MANAGER';
+      } else if (groups.includes('Factory_Officer')) {
+        mappedRole = 'OFFICER';
+      }
+      
+      setRole(mappedRole);
+      setAuth(mappedRole, 'FAC001', ['FAC001', 'FAC002']);
+      router.push(roleHomes[mappedRole]);
+      
+    } catch (err: any) {
+      if (err.name === 'UserNotFoundException') {
+        setError('User does not exist.');
+      } else if (err.name === 'NotAuthorizedException') {
+        setError('Incorrect email or password.');
+      } else {
+        setError(err.message || 'An error occurred during login.');
+      }
+      setLoading(false);
+    }
   }
 
   const slide = slides[current];

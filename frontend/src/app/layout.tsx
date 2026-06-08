@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import ConfigureAmplifyClientSide from '@/components/ConfigureAmplify';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-base text-text-primary antialiased">{children}</body>
+      <body className="min-h-screen bg-base text-text-primary antialiased">
+        <ConfigureAmplifyClientSide />
+        {children}
+      </body>
     </html>
   );
 }
