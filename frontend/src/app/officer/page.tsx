@@ -158,7 +158,9 @@ export default function OfficerDashboard() {
 
       const session = await fetchAuthSession().catch(() => ({}));
       console.log("Auth session object:", session);
-      const token = session.tokens?.accessToken?.toString() || session.tokens?.idToken?.toString();
+      // Safely cast tokens to 'any' to bypass Next.js strict build checks
+      const anyTokens = session.tokens as any;
+      const token = anyTokens?.accessToken?.toString() || anyTokens?.idToken?.toString();
       console.log("Token attached:", token);
 
       // Secondary: IoT Control endpoint
@@ -192,7 +194,9 @@ export default function OfficerDashboard() {
     setStarting(true);
     try {
       const session = await fetchAuthSession().catch(() => ({}));
-      const token = session.tokens?.accessToken?.toString() || session.tokens?.idToken?.toString();
+      // Safely cast tokens to 'any' to bypass Next.js strict build checks
+      const anyTokens = session.tokens as any;
+      const token = anyTokens?.accessToken?.toString() || anyTokens?.idToken?.toString();
       await api.post('/fermentation/control', {
         status: "STOPPED",
         batch_id: "NONE"
