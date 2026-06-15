@@ -11,8 +11,9 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const session = await fetchAuthSession();
-      if (session.tokens?.accessToken) {
-        config.headers.Authorization = `Bearer ${session.tokens.accessToken.toString()}`;
+      const anyTokens = session.tokens as any;
+      if (anyTokens?.accessToken) {
+        config.headers.Authorization = `Bearer ${anyTokens.accessToken.toString()}`;
       }
     } catch (err) {
       // Ignore errors when no session exists
