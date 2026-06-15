@@ -156,11 +156,10 @@ export default function OfficerDashboard() {
         deviceId: newDeviceId,
       }).catch(() => {/* swallow — surface success in UI for demo */});
 
-      const session = await fetchAuthSession().catch(() => ({}));
+      const session: any = await fetchAuthSession().catch(() => ({}));
       console.log("Auth session object:", session);
-      // Safely cast tokens to 'any' to bypass Next.js strict build checks
-      const anyTokens = session.tokens as any;
-      const token = anyTokens?.accessToken?.toString() || anyTokens?.idToken?.toString();
+      // Safely extract tokens bypassing strict types
+      const token = session?.tokens?.accessToken?.toString() || session?.tokens?.idToken?.toString();
       console.log("Token attached:", token);
 
       // Secondary: IoT Control endpoint
@@ -193,10 +192,9 @@ export default function OfficerDashboard() {
     
     setStarting(true);
     try {
-      const session = await fetchAuthSession().catch(() => ({}));
-      // Safely cast tokens to 'any' to bypass Next.js strict build checks
-      const anyTokens = session.tokens as any;
-      const token = anyTokens?.accessToken?.toString() || anyTokens?.idToken?.toString();
+      const session: any = await fetchAuthSession().catch(() => ({}));
+      // Safely extract tokens bypassing strict types
+      const token = session?.tokens?.accessToken?.toString() || session?.tokens?.idToken?.toString();
       await api.post('/fermentation/control', {
         status: "STOPPED",
         batch_id: "NONE"
