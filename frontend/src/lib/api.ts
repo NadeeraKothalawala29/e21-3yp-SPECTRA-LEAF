@@ -9,10 +9,9 @@ export const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      const session = await fetchAuthSession();
-      const anyTokens = session.tokens as any;
-      if (anyTokens?.accessToken) {
-        config.headers.Authorization = `Bearer ${anyTokens.accessToken.toString()}`;
+      const session: any = await fetchAuthSession();
+      if (session?.tokens?.accessToken) {
+        config.headers.Authorization = `Bearer ${session.tokens.accessToken.toString()}`;
       }
     } catch (err) {
       // Ignore errors when no session exists
