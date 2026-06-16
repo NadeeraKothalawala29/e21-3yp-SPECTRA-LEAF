@@ -8,58 +8,58 @@ import type { Role } from '@/types';
 
 /* ─── Data ─── */
 const roleHomes: Record<Role, string> = {
-  OFFICER:         '/officer',
-  MANAGER:         '/manager',
+  OFFICER: '/officer',
+  MANAGER: '/manager',
   GENERAL_MANAGER: '/gm',
 };
 
 const roles: { key: Role; title: string; sub: string }[] = [
-  { key: 'OFFICER',         title: 'Factory Officer',  sub: 'Monitor sensors · edit GLP'  },
-  { key: 'MANAGER',         title: 'Factory Manager',  sub: 'Track revenue · set price'   },
-  { key: 'GENERAL_MANAGER', title: 'General Manager',  sub: 'Compare all factories'        },
+  { key: 'OFFICER', title: 'Factory Officer', sub: 'Monitor sensors · edit GLP' },
+  { key: 'MANAGER', title: 'Factory Manager', sub: 'Track revenue · set price' },
+  { key: 'GENERAL_MANAGER', title: 'General Manager', sub: 'Compare all factories' },
 ];
 
 const slides = [
   {
-    img:    '/images/leaf1.jpg',
-    quote:  '"The finest teas are born from patience — every leaf tells the story of its fermentation."',
+    img: '/images/leaf1.jpg',
+    quote: '"The finest teas are born from patience — every leaf tells the story of its fermentation."',
     author: 'Spectraleaf',
-    role:   'Fermentation Intelligence',
-    sub:    'Precision IoT monitoring for every cycle.',
+    role: 'Fermentation Intelligence',
+    sub: 'Precision IoT monitoring for every cycle.',
   },
   {
-    img:    '/images/leaf2.jpg',
-    quote:  '"Real-time data turns instinct into certainty — measure every degree, every second."',
+    img: '/images/leaf2.jpg',
+    quote: '"Real-time data turns instinct into certainty — measure every degree, every second."',
     author: 'Spectraleaf',
-    role:   'IoT Tea Monitoring',
-    sub:    'Sensor-driven decisions on the factory floor.',
+    role: 'IoT Tea Monitoring',
+    sub: 'Sensor-driven decisions on the factory floor.',
   },
   {
-    img:    '/images/leaf3.jpg',
-    quote:  '"From leaf to cup, quality begins in the fermentation chamber — trust the data."',
+    img: '/images/leaf3.jpg',
+    quote: '"From leaf to cup, quality begins in the fermentation chamber — trust the data."',
     author: 'Spectraleaf',
-    role:   'Quality Intelligence',
-    sub:    'GLP analytics that protect your batch value.',
+    role: 'Quality Intelligence',
+    sub: 'GLP analytics that protect your batch value.',
   },
 ];
 
 /* ─── Page ─── */
 export default function LoginPage() {
-  const router  = useRouter();
+  const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const [email,    setEmail]    = useState('officer@spectraleaf.io');
+  const [email, setEmail] = useState('officer@spectraleaf.io');
   const [password, setPassword] = useState('');
-  const [showPw,   setShowPw]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
-  const [role,     setRole]     = useState<Role>('OFFICER');
-  const [error,    setError]    = useState<string | null>(null);
-  const [loading,  setLoading]  = useState(false);
+  const [role, setRole] = useState<Role>('OFFICER');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   /* Slideshow */
   const [current, setCurrent] = useState(0);
-  const [prev,    setPrev]    = useState<number | null>(null);
-  const [fading,  setFading]  = useState(false);
+  const [prev, setPrev] = useState<number | null>(null);
+  const [fading, setFading] = useState(false);
 
   const goTo = useCallback((next: number) => {
     setPrev(current);
@@ -80,9 +80,9 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) { 
-      setError('Email and password are required'); 
-      return; 
+    if (!email.trim() || !password.trim()) {
+      setError('Email and password are required');
+      return;
     }
 
     setError(null);
@@ -90,10 +90,10 @@ export default function LoginPage() {
 
     try {
       await signIn({ username: email, password });
-      
+
       const session = await fetchAuthSession();
       const groups = (session.tokens?.accessToken?.payload?.['cognito:groups'] as string[]) || [];
-      
+
       let mappedRole: Role = role; // fallback
       if (groups.includes('General_Manager')) {
         mappedRole = 'GENERAL_MANAGER';
@@ -102,11 +102,11 @@ export default function LoginPage() {
       } else if (groups.includes('Factory_Officer')) {
         mappedRole = 'OFFICER';
       }
-      
+
       setRole(mappedRole);
       setAuth(mappedRole, 'FAC001', ['FAC001', 'FAC002']);
       router.push(roleHomes[mappedRole]);
-      
+
     } catch (err: any) {
       if (err.name === 'UserNotFoundException') {
         setError('User does not exist.');
@@ -176,14 +176,14 @@ export default function LoginPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                     {showPw ? (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
                       </svg>
                     ) : (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
                       </svg>
                     )}
                   </button>
@@ -203,12 +203,10 @@ export default function LoginPage() {
                     const active = role === r.key;
                     return (
                       <button key={r.key} type="button" onClick={() => setRole(r.key)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-all ${
-                          active ? 'border-[#15803D] bg-[#F0FDF4]' : 'border-slate-200 bg-white hover:border-slate-300'
-                        }`}>
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                          active ? 'border-[#15803D]' : 'border-slate-300'
-                        }`}>
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-all ${active ? 'border-[#15803D] bg-[#F0FDF4]' : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}>
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${active ? 'border-[#15803D]' : 'border-slate-300'
+                          }`}>
                           {active && <div className="w-2 h-2 rounded-full bg-[#15803D]" />}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -226,13 +224,12 @@ export default function LoginPage() {
               {/* Remember me */}
               <div className="flex items-center gap-2.5">
                 <button type="button" onClick={() => setRemember(!remember)}
-                  className={`w-4 h-4 rounded flex items-center justify-center border transition-colors shrink-0 ${
-                    remember ? 'bg-[#15803D] border-[#15803D]' : 'border-slate-300'
-                  }`}>
+                  className={`w-4 h-4 rounded flex items-center justify-center border transition-colors shrink-0 ${remember ? 'bg-[#15803D] border-[#15803D]' : 'border-slate-300'
+                    }`}>
                   {remember && (
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                       stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
+                      <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </button>
@@ -253,7 +250,7 @@ export default function LoginPage() {
                   <>
                     <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"
                       stroke="white" strokeWidth="2" strokeLinecap="round">
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
                     Signing in…
                   </>
@@ -287,7 +284,7 @@ export default function LoginPage() {
               backgroundImage: `url(${s.img})`,
               opacity:
                 i === current ? (fading ? 0 : 1) :
-                i === prev    ? (fading ? 1 : 0) : 0,
+                  i === prev ? (fading ? 1 : 0) : 0,
               transition: 'opacity 600ms ease-in-out',
               zIndex: i === current ? 2 : i === prev ? 1 : 0,
             }}
@@ -321,9 +318,8 @@ export default function LoginPage() {
               <div className="flex items-center gap-1.5">
                 {slides.map((_, i) => (
                   <button key={i} onClick={() => goTo(i)}
-                    className={`rounded-full transition-all ${
-                      i === current ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'
-                    }`}
+                    className={`rounded-full transition-all ${i === current ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                      }`}
                   />
                 ))}
               </div>
@@ -334,7 +330,7 @@ export default function LoginPage() {
                     text-white/70 hover:bg-white/15 transition-colors">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m15 18-6-6 6-6"/>
+                    <path d="m15 18-6-6 6-6" />
                   </svg>
                 </button>
                 <button
@@ -343,7 +339,7 @@ export default function LoginPage() {
                     text-white/70 hover:bg-white/15 transition-colors">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m9 18 6-6-6-6"/>
+                    <path d="m9 18 6-6-6-6" />
                   </svg>
                 </button>
               </div>
